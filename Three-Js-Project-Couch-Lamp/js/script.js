@@ -2,6 +2,9 @@ import * as THREE from "three";
 
 //import orbitcontrol for mouse-controlled camera movements
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
+import { RectAreaLightHelper } from "three/examples/jsm/helpers/RectAreaLightHelper.js";
+// import GUI from "lil-gui";
 
 // Four texture images (blue, red, brown, white) are imported, which will be applied to the couch. //
 
@@ -16,7 +19,7 @@ import L_stand from "../img/base_m.jpg";
 import messi from "../img/messi.jpg";
 import srejon from "../img/srejon.jpeg";
 import ceiling from "../img/ceiling2.jpg"; // add this
-
+// import sadMp3 from "../music/ambiance.mp3";
 // click = 1;: This Global variable is used to track how many times the user has clicked. It controls which texture is applied to the couch. //
 
 var click = 1;
@@ -59,29 +62,27 @@ const textureLoader = new THREE.TextureLoader();
 //scene.background = textureLoader.load('https://thumbs.dreamstime.com/z/brick-wall-lights-old-stage-31525641.jpg');
 
 // An audio stream is loaded and played in the background using the AudioLoader and AudioListener features of Three.js.
+// const stream = sadMp3;
+// ---- Background music ----
+// const listener = new THREE.AudioListener();
+// camera.add(listener); // attach listener to the camera
 
-/*
-const listener = new THREE.AudioListener();
-scene.add( listener );
+// const sound = new THREE.Audio(listener);
+// const audioLoader = new THREE.AudioLoader();
+// audioLoader.load(stream, (buffer) => {
+//   sound.setBuffer(buffer);
+//   sound.setLoop(true);
+//   sound.setVolume(0.5);
+// });
 
-
-// create a global audio source
-const sound = new THREE.Audio( listener );
-
-// load a sound and set it as the Audio object's buffer
-const audioLoader = new THREE.AudioLoader();
-audioLoader.load( stream, function( buffer ) {
-	sound.setBuffer( buffer ); //sound.setBuffer(buffer): Sets the audio data to the sound source.
-	sound.setLoop( true );
-	sound.setVolume( 0.5 );
-    
-	sound.play();
-}
-  
-
-);
-
-*/
+// // Start on first user click (needed due to autoplay policies)
+// window.addEventListener(
+//   "click",
+//   () => {
+//     if (!sound.isPlaying) sound.play();
+//   },
+//   { once: true }
+// );
 
 /**
   The couch is created as a group of 3D objects using THREE.Mesh, each representing parts of the couch (like the seat, back, arms). The textureLoader is used to apply the blue couch texture initially.
@@ -298,6 +299,65 @@ floor.receiveShadow = true;
 floor.rotation.x = -0.5 * Math.PI;
 floor.position.y = 0;
 scene.add(floor);
+
+// Put coffee set well in front of the couch
+const coffeeZ = 8.5; // try 8.5–12; front wall is at ~+35
+const stemHeight = 3.6; // was 1.6 — a bit taller now
+const topThickness = 0.6; // tabletop thickness
+// Round rug
+const rug = new THREE.Mesh(
+  new THREE.CircleGeometry(16, 64), // slightly smaller so it never touches the couch
+  new THREE.MeshStandardMaterial({
+    color: 0xcfe2f3,
+    roughness: 0.9,
+    metalness: 0,
+  })
+);
+rug.rotation.x = -Math.PI / 2;
+rug.position.set(-4.5, 0.02, coffeeZ);
+rug.receiveShadow = true;
+scene.add(rug);
+
+// Coffee table (stem sits on floor, top sits on stem)
+const tableStem = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.7, 0.9, stemHeight, 24),
+  new THREE.MeshStandardMaterial({
+    color: 0x7a6f63,
+    roughness: 0.7,
+    metalness: 0.2,
+  })
+);
+tableStem.position.set(-4.5, stemHeight / 2, coffeeZ); // center at half-height so bottom touches floor
+tableStem.castShadow = true;
+
+const tableTop = new THREE.Mesh(
+  new THREE.CylinderGeometry(8, 8, topThickness, 48),
+  new THREE.MeshStandardMaterial({
+    color: 0xd9d3c7,
+    roughness: 0.4,
+    metalness: 0.1,
+  })
+);
+tableTop.position.set(-4.5, stemHeight + topThickness / 2, coffeeZ); // 1.6 (stem) + 0.3 (half top)
+tableTop.castShadow = true;
+
+scene.add(tableTop, tableStem);
+
+// Replace the omnidirectional point light with a spotlight feel
+// const lampSpot = new THREE.SpotLight(0xfff2cc, 35, 50, Math.PI / 5, 0.35, 2);
+// color, intensity, distance, angle, penumbra, decay
+// lampSpot.castShadow = true;
+// lampSpot.shadow.mapSize.set(1024, 1024);
+
+// Position at the lampshade and aim to floor near the couch
+// lampSpot.position.set(22, 17.5, -12.5);
+// lampSpot.target.position.set(-4.5, 0.6, -12.5);
+// scene.add(lampSpot, lampSpot.target);
+
+// Subtle glow from the shade
+// head.material.emissive = new THREE.Color(0xfff2cc);
+// head.material.emissiveIntensity = 0.25;
+
 /**
  Lights
 */
@@ -315,6 +375,29 @@ lampLight.shadow.camera.far = 7.5;
 lampLight.position.set(15.5, 3, 2.7);
 lamp.add(lampLight);
 
+// RectAreaLightUniformsLib.init();
+
+// // Rectangular area light simulating a bright window on +X wall
+// const windowLight = new THREE.RectAreaLight(0xffffff, 15, 30, 18); // color, intensity, width, height
+// windowLight.position.set(85 - 0.2, 20, -12.5); // slightly off the wall to avoid z-fighting
+// windowLight.lookAt(0, 18, -12.5);
+// scene.add(windowLight);
+
+// // Optional visible "window" panel (bright emissive plane)
+// const windowPanel = new THREE.Mesh(
+//   new THREE.PlaneGeometry(30, 18),
+//   new THREE.MeshBasicMaterial({ color: 0xffffff })
+// );
+// windowPanel.position.copy(windowLight.position);
+// windowPanel.lookAt(windowLight.target.position);
+// windowPanel.position.x -= 0.05; // tuck into wall
+// windowPanel.renderOrder = -1;
+// scene.add(windowPanel);
+
+// Optional helper
+// const windowHelper = new RectAreaLightHelper(windowLight);
+// windowLight.add(windowHelper);
+
 //renderer //
 
 renderer = new THREE.WebGLRenderer();
@@ -324,6 +407,13 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setClearColor("black");
 document.body.appendChild(renderer.domElement);
+
+// Tone mapping & correct color space
+// renderer.toneMapping = THREE.ACESFilmicToneMapping;
+// renderer.toneMappingExposure = 1.1;
+// if ("outputColorSpace" in renderer)
+//   renderer.outputColorSpace = THREE.SRGBColorSpace;
+// else renderer.outputEncoding = THREE.sRGBEncoding;
 
 // Camera add to screen //
 scene.add(camera);
@@ -375,54 +465,123 @@ room.position.y = 19;
 room.receiveShadow = true;
 scene.add(room);
 
+// Let objects cast/receive shadows
+couch.traverse((o) => {
+  if (o.isMesh) o.castShadow = true;
+});
+lamp.traverse((o) => {
+  if (o.isMesh) o.castShadow = true;
+});
+room.castShadow = false; // box walls usually don't cast
+room.receiveShadow = true;
+floor.receiveShadow = true;
+
 // ---------- Framed Messi picture on the back wall ----------
+// function addFramedArt(url, opts = {}) {
+//   const {
+//     centerX = -44.5, // horizontally centered over your couch; tweak if needed
+//     centerY = 18, // eye height
+//     wallZ = -35, // back wall plane for your Box(170,40,70) room
+//     maxHeight = 20, // picture height in scene units
+//   } = opts;
+
+//   const loader = new THREE.TextureLoader();
+//   loader.load(url, (tex) => {
+//     // Make the image crisp & color-accurate
+//     if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace;
+//     else tex.encoding = THREE.sRGBEncoding;
+//     tex.minFilter = THREE.LinearMipmapLinearFilter;
+//     tex.magFilter = THREE.LinearFilter;
+//     tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
+
+//     // Keep the correct aspect ratio
+//     const aspect = tex.image.width / tex.image.height;
+//     const artH = maxHeight;
+//     const artW = artH * aspect;
+
+//     // Picture (unlit so it looks like the real photo)
+//     const artMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+//     const art = new THREE.Mesh(new THREE.PlaneGeometry(artW, artH), artMat);
+//     art.position.set(centerX, centerY, wallZ + 0.7);
+
+//     // Prevent z-fighting
+//     art.material.polygonOffset = true;
+//     art.material.polygonOffsetFactor = 1;
+//     art.material.polygonOffsetUnits = 1;
+
+//     // Simple dark frame
+//     const frameDepth = 0.6;
+//     const frameThick = 1.0;
+//     const frame = new THREE.Mesh(
+//       new THREE.BoxGeometry(artW + frameThick, artH + frameThick, frameDepth),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x2a2a2a,
+//         metalness: 0.2,
+//         roughness: 0.6,
+//       })
+//     );
+//     frame.position.set(centerX, centerY, wallZ + 0.3);
+
+//     const group = new THREE.Group();
+//     group.add(frame, art);
+//     scene.add(group);
+//   });
+// }
 function addFramedArt(url, opts = {}) {
-  const {
-    centerX = -44.5, // horizontally centered over your couch; tweak if needed
-    centerY = 18, // eye height
-    wallZ = -35, // back wall plane for your Box(170,40,70) room
-    maxHeight = 20, // picture height in scene units
-  } = opts;
+  const { centerX = -44.5, centerY = 18, wallZ = -35, maxHeight = 20 } = opts;
 
   const loader = new THREE.TextureLoader();
   loader.load(url, (tex) => {
-    // Make the image crisp & color-accurate
     if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace;
     else tex.encoding = THREE.sRGBEncoding;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     tex.magFilter = THREE.LinearFilter;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
 
-    // Keep the correct aspect ratio
     const aspect = tex.image.width / tex.image.height;
     const artH = maxHeight;
     const artW = artH * aspect;
 
-    // Picture (unlit so it looks like the real photo)
-    const artMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
-    const art = new THREE.Mesh(new THREE.PlaneGeometry(artW, artH), artMat);
+    const art = new THREE.Mesh(
+      new THREE.PlaneGeometry(artW, artH),
+      new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })
+    );
     art.position.set(centerX, centerY, wallZ + 0.7);
-
-    // Prevent z-fighting
     art.material.polygonOffset = true;
     art.material.polygonOffsetFactor = 1;
     art.material.polygonOffsetUnits = 1;
 
-    // Simple dark frame
-    const frameDepth = 0.6;
-    const frameThick = 1.0;
+    // Dark frame with clearcoat sheen
+    const frameDepth = 0.6,
+      frameThick = 1.2;
     const frame = new THREE.Mesh(
       new THREE.BoxGeometry(artW + frameThick, artH + frameThick, frameDepth),
-      new THREE.MeshStandardMaterial({
+      new THREE.MeshPhysicalMaterial({
         color: 0x2a2a2a,
-        metalness: 0.2,
-        roughness: 0.6,
+        metalness: 0.3,
+        roughness: 0.45,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
       })
     );
     frame.position.set(centerX, centerY, wallZ + 0.3);
 
+    // Ultra-thin glass pane (very low opacity so we don’t obscure the art)
+    const glass = new THREE.Mesh(
+      new THREE.PlaneGeometry(artW * 0.995, artH * 0.995),
+      new THREE.MeshPhysicalMaterial({
+        transmission: 0.0, // no refraction
+        transparent: true,
+        opacity: 0.06,
+        roughness: 0.05,
+        clearcoat: 1,
+        clearcoatRoughness: 0.05,
+      })
+    );
+    glass.position.set(centerX, centerY, wallZ + 0.71);
+
     const group = new THREE.Group();
-    group.add(frame, art);
+    group.add(frame, art, glass);
     scene.add(group);
   });
 }
@@ -430,53 +589,110 @@ function addFramedArt(url, opts = {}) {
 addFramedArt(messi);
 
 // ---------- Framed Srejon picture on the back wall ----------
+// function addSrejonArt(url, opts = {}) {
+//   const {
+//     centerX = 54.5, // horizontally centered over your couch; tweak if needed
+//     centerY = 18, // eye height
+//     wallZ = -35, // back wall plane for your Box(170,40,70) room
+//     maxHeight = 20, // picture height in scene units
+//   } = opts;
+
+//   const loader = new THREE.TextureLoader();
+//   loader.load(url, (tex) => {
+//     // Make the image crisp & color-accurate
+//     if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace;
+//     else tex.encoding = THREE.sRGBEncoding;
+//     tex.minFilter = THREE.LinearMipmapLinearFilter;
+//     tex.magFilter = THREE.LinearFilter;
+//     tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
+
+//     // Keep the correct aspect ratio
+//     const aspect = tex.image.width / tex.image.height;
+//     const artH = maxHeight;
+//     const artW = artH * aspect;
+
+//     // Picture (unlit so it looks like the real photo)
+//     const artMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+//     const art = new THREE.Mesh(new THREE.PlaneGeometry(artW, artH), artMat);
+//     art.position.set(centerX, centerY, wallZ + 0.7);
+
+//     // Prevent z-fighting
+//     art.material.polygonOffset = true;
+//     art.material.polygonOffsetFactor = 1;
+//     art.material.polygonOffsetUnits = 1;
+
+//     // Simple dark frame
+//     const frameDepth = 0.6;
+//     const frameThick = 1.0;
+//     const frame = new THREE.Mesh(
+//       new THREE.BoxGeometry(artW + frameThick, artH + frameThick, frameDepth),
+//       new THREE.MeshStandardMaterial({
+//         color: 0x2a2a2a,
+//         metalness: 0.2,
+//         roughness: 0.6,
+//       })
+//     );
+//     frame.position.set(centerX, centerY, wallZ + 0.3);
+
+//     const group = new THREE.Group();
+//     group.add(frame, art);
+//     scene.add(group);
+//   });
+// }
+
 function addSrejonArt(url, opts = {}) {
-  const {
-    centerX = 54.5, // horizontally centered over your couch; tweak if needed
-    centerY = 18, // eye height
-    wallZ = -35, // back wall plane for your Box(170,40,70) room
-    maxHeight = 20, // picture height in scene units
-  } = opts;
+  const { centerX = 54.5, centerY = 18, wallZ = -35, maxHeight = 20 } = opts;
 
   const loader = new THREE.TextureLoader();
   loader.load(url, (tex) => {
-    // Make the image crisp & color-accurate
     if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace;
     else tex.encoding = THREE.sRGBEncoding;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     tex.magFilter = THREE.LinearFilter;
     tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
 
-    // Keep the correct aspect ratio
     const aspect = tex.image.width / tex.image.height;
     const artH = maxHeight;
     const artW = artH * aspect;
 
-    // Picture (unlit so it looks like the real photo)
-    const artMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
-    const art = new THREE.Mesh(new THREE.PlaneGeometry(artW, artH), artMat);
+    const art = new THREE.Mesh(
+      new THREE.PlaneGeometry(artW, artH),
+      new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })
+    );
     art.position.set(centerX, centerY, wallZ + 0.7);
-
-    // Prevent z-fighting
     art.material.polygonOffset = true;
     art.material.polygonOffsetFactor = 1;
     art.material.polygonOffsetUnits = 1;
 
-    // Simple dark frame
-    const frameDepth = 0.6;
-    const frameThick = 1.0;
+    const frameDepth = 0.6,
+      frameThick = 1.2;
     const frame = new THREE.Mesh(
       new THREE.BoxGeometry(artW + frameThick, artH + frameThick, frameDepth),
-      new THREE.MeshStandardMaterial({
+      new THREE.MeshPhysicalMaterial({
         color: 0x2a2a2a,
-        metalness: 0.2,
-        roughness: 0.6,
+        metalness: 0.3,
+        roughness: 0.45,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.1,
       })
     );
     frame.position.set(centerX, centerY, wallZ + 0.3);
 
+    const glass = new THREE.Mesh(
+      new THREE.PlaneGeometry(artW * 0.995, artH * 0.995),
+      new THREE.MeshPhysicalMaterial({
+        transmission: 0.0,
+        transparent: true,
+        opacity: 0.06,
+        roughness: 0.05,
+        clearcoat: 1,
+        clearcoatRoughness: 0.05,
+      })
+    );
+    glass.position.set(centerX, centerY, wallZ + 0.71);
+
     const group = new THREE.Group();
-    group.add(frame, art);
+    group.add(frame, art, glass);
     scene.add(group);
   });
 }
