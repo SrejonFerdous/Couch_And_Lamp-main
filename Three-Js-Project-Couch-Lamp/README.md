@@ -1,6 +1,6 @@
 # This is our group project for Computer Graphics Lab (CSE 4204)
 
-# Installing Informations is following :-
+# Installing Information is following :-
 
 # Three-Js-Project-Couch-Lamp
 
@@ -17,7 +17,3 @@
 => Run Parcel by typing following this command: npx parcel ./index.html
 
 => Open your browser and copy paste this address like: http://localhost:1234
-
-# Youtube Link:
-
-https://youtu.be/BUo0Qimw_50
