@@ -14,9 +14,8 @@ import floorr from "../img/wall9.jpg";
 import L_head from "../img/lamp3.jpg";
 import L_stand from "../img/base_m.jpg";
 import messi from "../img/messi.jpg";
+import srejon from "../img/srejon.jpeg";
 import ceiling from "../img/ceiling2.jpg"; // add this
-
-// <-- replace with your file
 
 // click = 1;: This Global variable is used to track how many times the user has clicked. It controls which texture is applied to the couch. //
 
@@ -429,6 +428,60 @@ function addFramedArt(url, opts = {}) {
 }
 
 addFramedArt(messi);
+
+// ---------- Framed Srejon picture on the back wall ----------
+function addSrejonArt(url, opts = {}) {
+  const {
+    centerX = 54.5, // horizontally centered over your couch; tweak if needed
+    centerY = 18, // eye height
+    wallZ = -35, // back wall plane for your Box(170,40,70) room
+    maxHeight = 20, // picture height in scene units
+  } = opts;
+
+  const loader = new THREE.TextureLoader();
+  loader.load(url, (tex) => {
+    // Make the image crisp & color-accurate
+    if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace;
+    else tex.encoding = THREE.sRGBEncoding;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
+
+    // Keep the correct aspect ratio
+    const aspect = tex.image.width / tex.image.height;
+    const artH = maxHeight;
+    const artW = artH * aspect;
+
+    // Picture (unlit so it looks like the real photo)
+    const artMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+    const art = new THREE.Mesh(new THREE.PlaneGeometry(artW, artH), artMat);
+    art.position.set(centerX, centerY, wallZ + 0.7);
+
+    // Prevent z-fighting
+    art.material.polygonOffset = true;
+    art.material.polygonOffsetFactor = 1;
+    art.material.polygonOffsetUnits = 1;
+
+    // Simple dark frame
+    const frameDepth = 0.6;
+    const frameThick = 1.0;
+    const frame = new THREE.Mesh(
+      new THREE.BoxGeometry(artW + frameThick, artH + frameThick, frameDepth),
+      new THREE.MeshStandardMaterial({
+        color: 0x2a2a2a,
+        metalness: 0.2,
+        roughness: 0.6,
+      })
+    );
+    frame.position.set(centerX, centerY, wallZ + 0.3);
+
+    const group = new THREE.Group();
+    group.add(frame, art);
+    scene.add(group);
+  });
+}
+
+addSrejonArt(srejon);
 
 // Move the camera around object using MOUSE movment //
 
