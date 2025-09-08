@@ -5,15 +5,18 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 // Four texture images (blue, red, brown, white) are imported, which will be applied to the couch. //
 
-import blue from "../img/tealcouch.jpg";
+import blue from "../img/blackcouch.jpg";
 import red from "../img/graycouch.jpg";
-import brown from "../img/orangecouch.jpg";
-import white from "../img/greencouch.jpg";
-import wall from "../img/wall3.jpg";
-import floorr from "../img/floor2.jpg";
-import L_head from "../img/lamp.jpg";
-import L_stand from "../img/basejpg.jpg";
-import myPicture from "../img/messi.jpg";
+import brown from "../img/tealcouch.jpg";
+import white from "../img/redcouch2.jpg";
+import wall from "../img/wall10.jpg";
+import floorr from "../img/wall9.jpg";
+import L_head from "../img/lamp3.jpg";
+import L_stand from "../img/base_m.jpg";
+import messi from "../img/messi.jpg";
+import ceiling from "../img/ceiling2.jpg"; // add this
+
+// <-- replace with your file
 
 // click = 1;: This Global variable is used to track how many times the user has clicked. It controls which texture is applied to the couch. //
 
@@ -172,24 +175,64 @@ body6.position.z = -12.5;
 
 couch.add(body6);
 
-// --- Picture Frame (add this section) ---
-// const pictureGeometry = new THREE.PlaneGeometry(20, 15); // Adjust width and height as needed
-// const pictureMaterial = new THREE.MeshBasicMaterial({
-//   map: textureLoader.load(myPicture),
-//   side: THREE.DoubleSide,
+// // ----- Wall picture (behind the couch) -----
+// const artTexture = textureLoader.load(artImg, (t) => {
+//   // make it crisp & correctly colored
+//   if (t.minFilter) t.minFilter = THREE.LinearMipmapLinearFilter;
+//   if (t.magFilter) t.magFilter = THREE.LinearFilter;
+//   if ("anisotropy" in t)
+//     t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+//   // three r150+: use colorSpace; older three: use encoding
+//   if ("colorSpace" in t) t.colorSpace = THREE.SRGBColorSpace;
+//   else t.encoding = THREE.sRGBEncoding;
 // });
-// const picture = new THREE.Mesh(pictureGeometry, pictureMaterial);
 
-// Position the picture (adjust these values to place it correctly behind the couch)
-// picture.position.x = -40; // Adjust X to move it left/right along the wall
-// picture.position.y = 25; // Adjust Y to move it up/down on the wall
-// picture.position.z = -34.5; // This should be slightly less than the room's Z for the back wall to be visible
+// // Choose size (in scene units). Adjust to taste.
+// const ART_W = 30;
+// const ART_H = 18;
 
-// Rotate the picture to face the inside of the room (it's on the Z-axis wall)
-// picture.rotation.y = Math.PI / 2; // Rotate 90 degrees around the Y-axis
+// // Picture panel (unlit so it looks like the actual image)
+// const artMaterial = new THREE.MeshBasicMaterial({
+//   map: artTexture,
+//   toneMapped: false, // keep colors true-to-file
+// });
+// const artPlane = new THREE.Mesh(
+//   new THREE.PlaneGeometry(ART_W, ART_H),
+//   artMaterial
+// );
 
-// scene.add(picture);
-// --- End Picture Frame ---
+// // Optional wooden frame
+// const frameDepth = 0.8;
+// const frame = new THREE.Mesh(
+//   new THREE.BoxGeometry(ART_W + 1, ART_H + 1, frameDepth),
+//   new THREE.MeshStandardMaterial({
+//     color: 0x3a2f1b,
+//     metalness: 0.2,
+//     roughness: 0.6,
+//   })
+// );
+
+// // Position: your room is Box(170,40,70) centered at (0,19,0), so the back wall is near z = -35.
+// // Your couch centers around x ≈ -4 to -5 and y ≈ 9–10 seat / ~18 back.
+// // Place the frame nearly flush with the wall, and the art slightly in front of the frame.
+// const centerX = -4.5; // center over couch (tweak if needed)
+// const centerY = 18; // eye-level (tweak if needed)
+// const wallZ = -35; // back wall plane (approx)
+
+// // Put the frame a hair off the wall; put the art a bit in front of the frame
+// frame.position.set(centerX, centerY, wallZ + 0.3);
+// artPlane.position.set(centerX, centerY, wallZ + 0.7);
+
+// // If you ever see flicker, polygonOffset can help when things are near-coplanar
+// artPlane.material.polygonOffset = true;
+// artPlane.material.polygonOffsetFactor = 1;
+// artPlane.material.polygonOffsetUnits = 1;
+
+// // Group them and add to scene
+// const wallArt = new THREE.Group();
+// wallArt.add(frame);
+// wallArt.add(artPlane);
+// scene.add(wallArt);
 
 /**
   A lamp is added with a head (a cylinder) and a stand (a box). Like the couch, textures are applied to make it look realistic. It’s also given a PointLight source, which illuminates the room.
@@ -288,17 +331,104 @@ scene.add(camera);
 
 // Create a room Geometry //
 
-const geometry = new THREE.BoxGeometry(170, 40, 70);
+// const geometry = new THREE.BoxGeometry(170, 40, 70);
 
-const material = new THREE.MeshStandardMaterial({
-  map: new THREE.TextureLoader().load(wall),
-});
+// const material = new THREE.MeshStandardMaterial({
+//   map: new THREE.TextureLoader().load(wall),
+// });
 
-material.side = THREE.BackSide;
-const room = new THREE.Mesh(geometry, material);
+// material.side = THREE.BackSide;
+// const room = new THREE.Mesh(geometry, material);
+// room.position.y = 19;
+// room.receiveShadow = true;
+// scene.add(room);
+
+// Create a room with different materials per face
+const roomGeo = new THREE.BoxGeometry(170, 40, 70);
+
+// Load & tune textures
+const wallTex = new THREE.TextureLoader().load(wall);
+const ceilTex = new THREE.TextureLoader().load(ceiling);
+
+// (optional) make textures tile nicely
+wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
+wallTex.repeat.set(3, 1); // tweak
+ceilTex.wrapS = ceilTex.wrapT = THREE.RepeatWrapping;
+ceilTex.repeat.set(2, 2); // tweak
+
+// Box face order: +X, -X, +Y, -Y, +Z, -Z
+const roomMats = [
+  new THREE.MeshStandardMaterial({ map: wallTex, side: THREE.BackSide }), // right wall
+  new THREE.MeshStandardMaterial({ map: wallTex, side: THREE.BackSide }), // left wall
+  new THREE.MeshStandardMaterial({ map: ceilTex, side: THREE.BackSide }), // ceiling (+Y)
+  // We already have a separate floor mesh, so make the bottom face invisible:
+  new THREE.MeshStandardMaterial({
+    transparent: true,
+    opacity: 0,
+    side: THREE.BackSide,
+  }),
+  new THREE.MeshStandardMaterial({ map: wallTex, side: THREE.BackSide }), // front wall
+  new THREE.MeshStandardMaterial({ map: wallTex, side: THREE.BackSide }), // back wall
+];
+
+const room = new THREE.Mesh(roomGeo, roomMats);
 room.position.y = 19;
 room.receiveShadow = true;
 scene.add(room);
+
+// ---------- Framed Messi picture on the back wall ----------
+function addFramedArt(url, opts = {}) {
+  const {
+    centerX = -44.5, // horizontally centered over your couch; tweak if needed
+    centerY = 18, // eye height
+    wallZ = -35, // back wall plane for your Box(170,40,70) room
+    maxHeight = 20, // picture height in scene units
+  } = opts;
+
+  const loader = new THREE.TextureLoader();
+  loader.load(url, (tex) => {
+    // Make the image crisp & color-accurate
+    if ("colorSpace" in tex) tex.colorSpace = THREE.SRGBColorSpace;
+    else tex.encoding = THREE.sRGBEncoding;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy?.() || 1;
+
+    // Keep the correct aspect ratio
+    const aspect = tex.image.width / tex.image.height;
+    const artH = maxHeight;
+    const artW = artH * aspect;
+
+    // Picture (unlit so it looks like the real photo)
+    const artMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
+    const art = new THREE.Mesh(new THREE.PlaneGeometry(artW, artH), artMat);
+    art.position.set(centerX, centerY, wallZ + 0.7);
+
+    // Prevent z-fighting
+    art.material.polygonOffset = true;
+    art.material.polygonOffsetFactor = 1;
+    art.material.polygonOffsetUnits = 1;
+
+    // Simple dark frame
+    const frameDepth = 0.6;
+    const frameThick = 1.0;
+    const frame = new THREE.Mesh(
+      new THREE.BoxGeometry(artW + frameThick, artH + frameThick, frameDepth),
+      new THREE.MeshStandardMaterial({
+        color: 0x2a2a2a,
+        metalness: 0.2,
+        roughness: 0.6,
+      })
+    );
+    frame.position.set(centerX, centerY, wallZ + 0.3);
+
+    const group = new THREE.Group();
+    group.add(frame, art);
+    scene.add(group);
+  });
+}
+
+addFramedArt(messi);
 
 // Move the camera around object using MOUSE movment //
 
