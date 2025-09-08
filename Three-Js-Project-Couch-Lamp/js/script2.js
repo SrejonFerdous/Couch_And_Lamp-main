@@ -11,7 +11,7 @@ import blue from "../img/blackcouch.jpg";
 import red from "../img/graycouch.jpg";
 import brown from "../img/tealcouch.jpg";
 import white from "../img/redcouch2.jpg";
-import wall from "../img/wall10.jpg";
+import wall from "../img/wall8.jpg";
 import floorr from "../img/wall9.jpg";
 import mat from "../img/rug.jpg";
 import glass from "../img/table.jpg";
