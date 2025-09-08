@@ -11,15 +11,15 @@ import blue from "../img/blackcouch.jpg";
 import red from "../img/graycouch.jpg";
 import brown from "../img/tealcouch.jpg";
 import white from "../img/redcouch2.jpg";
-import wall from "../img/wall10.jpg";
-import floorr from "../img/wall9.jpg";
-import mat from "../img/rug.jpg";
-import glass from "../img/table.jpg";
+import wall from "../img/wall8.jpg";
+import floorr from "../img/floor14.jpg";
+import mat from "../img/rug6.jpg";
+import glass from "../img/table2.jpg";
 import L_head from "../img/lamp3.jpg";
 import L_stand from "../img/base_m.jpg";
 import messi from "../img/messi.jpg";
 import srejon from "../img/srejon.jpeg";
-import ceiling from "../img/ceiling2.jpg"; // add this
+import ceiling from "../img/ceiling5.jpg"; // add this
 // import sadMp3 from "../music/ambiance.mp3";
 
 // click = 1;: This Global variable is used to track how many times the user has clicked. It controls which texture is applied to the couch. //
