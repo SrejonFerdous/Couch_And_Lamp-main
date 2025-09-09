@@ -10,10 +10,10 @@ import { RectAreaLightHelper } from "three/examples/jsm/helpers/RectAreaLightHel
 import blue from "../img/blackcouch.jpg";
 import red from "../img/graycouch.jpg";
 import brown from "../img/tealcouch.jpg";
-import white from "../img/redcouch2.jpg";
+import white from "../img/browncouch.jpg";
 import wall from "../img/wall8.jpg";
-import floorr from "../img/floor14.jpg";
-import mat from "../img/rug6.jpg";
+import floorr from "../img/floor3.jpg";
+import mat from "../img/rug10.jpeg";
 import glass from "../img/table2.jpg";
 import L_head from "../img/lamp3.jpg";
 import L_stand from "../img/base_m.jpg";
@@ -243,6 +243,10 @@ const head = new THREE.Mesh(
   new THREE.CylinderGeometry(7.44, 4.5, 8.06),
   makeShaderMat(tuneTexture(new THREE.TextureLoader().load(L_head)), 0.15) // slight glow
 );
+// const head = new THREE.Mesh(
+//   new THREE.CylinderGeometry(4.464, 2.7, 4.836),
+//   makeShaderMat(tuneTexture(new THREE.TextureLoader().load(L_head)), 0.15)
+// );
 head.position.x = 22;
 head.position.y = 17.8;
 head.position.z = -12.5;
@@ -254,6 +258,10 @@ const stand = new THREE.Mesh(
   new THREE.BoxGeometry(1, 1, 15.25),
   makeShaderMat(tuneTexture(new THREE.TextureLoader().load(L_stand)))
 );
+// const stand = new THREE.Mesh(
+//   new THREE.BoxGeometry(0.6, 1, 15.25),
+//   makeShaderMat(tuneTexture(new THREE.TextureLoader().load(L_stand)))
+// );
 stand.position.x = 22;
 stand.position.y = 8.8;
 stand.position.z = -12.5;
@@ -265,6 +273,10 @@ const base = new THREE.Mesh(
   new THREE.PlaneGeometry(10, 10),
   makeShaderMat(tuneTexture(new THREE.TextureLoader().load(L_stand)))
 );
+// const base = new THREE.Mesh(
+//   new THREE.PlaneGeometry(9, 9),
+//   makeShaderMat(tuneTexture(new THREE.TextureLoader().load(L_stand)))
+// );
 base.position.x = 22;
 base.position.y = 0.8;
 base.position.z = -12.5;
