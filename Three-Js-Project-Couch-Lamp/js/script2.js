@@ -306,8 +306,8 @@ const woodTex = tuneTexture(new THREE.TextureLoader().load(glass));
 woodTex.wrapS = woodTex.wrapT = THREE.RepeatWrapping;
 woodTex.repeat.set(2, 2);
 
-// Put coffee set well in front of the couch
-const coffeeZ = 8.5; // try 8.5–12; front wall is at ~+35
+// Putting coffee set well in front of the couch
+const coffeeZ = 8.5; // trying 8.5–12; front wall is at ~+35
 const stemHeight = 3.6; // was 1.6 — a bit taller now
 const topThickness = 0.6; // tabletop thickness
 
@@ -397,7 +397,7 @@ const roomGeo = new THREE.BoxGeometry(170, 40, 70);
 const wallTex = new THREE.TextureLoader().load(wall);
 const ceilTex = new THREE.TextureLoader().load(ceiling);
 
-// (optional) make textures tile nicely
+// make textures tile nicely
 wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
 wallTex.repeat.set(3, 1);
 ceilTex.wrapS = ceilTex.wrapT = THREE.RepeatWrapping;
